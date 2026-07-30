@@ -49,7 +49,7 @@
                 </ul>
             </section>
             <nav class="flex justify-center mt-6 space-x-2" aria-label="Carousel pagination">
-                <button v-for="index in totalSlides" :key="index" @click="currentSlide - 1" :class="['w-3 h-3 rounded-full', currentSlide === index - 1 ? 'bg-pink-950' : 'bg-gray-400']" />
+                <button v-for="index in totalSlides" :key="index" @click="currentSlide = index - 1" :class="['w-3 h-3 rounded-full', currentSlide === index - 1 ? 'bg-pink-950' : 'bg-gray-400']" />
             </nav>
         </main>
     </section>
@@ -91,7 +91,7 @@ const nextSlide = () => {
 }
 
 const previousSlide = () => {
-    currentSlide.value = currentSlide.value === totalSlides.value -1 ? 0 : currentSlide.value - 1;
+    currentSlide.value = currentSlide.value === 0 ? totalSlides.value - 1 : currentSlide.value - 1;
 }
 
 const handleResize = () => {
