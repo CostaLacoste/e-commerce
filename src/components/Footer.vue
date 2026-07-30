@@ -4,7 +4,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
                 <div>
                     <h3 class="text-xl font-bold text-white mb-4">Scent Haven</h3>
-                    <p class="mb-4">Your premier destination for luxury fragnances from around the world.</p>
+                    <p class="mb-4">Your premier destination for luxury fragrances from around the world.</p>
                     <div class="flex space-x-4">
                         <a v-for="(social,index) in socialLinks" :href="social.url" :key="index" class="text-gray-400 hover:text-white transition">
                             <Icon :icon="social.icon" class="h-5 w-5"/>
@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center">
-                <p>&copy; {{ new Date().getFullYear() }} scent haven. All right reserved.</p>
+                <p>&copy; {{ new Date().getFullYear() }} Scent Haven. All rights reserved.</p>
                 <div class="flex space-x-6 mt-4 md:mt-0">
                     <Icon v-for="(icon,index) in paymentIcons" :key="index" :icon="icon" class="w-8 h-6"/>
                 </div>
@@ -52,7 +52,7 @@
 <script setup>
 import {ref} from 'vue'
 const quickLinks = ref(['Home','Shop','New Arrivals','Best Sellers','Gift Sets']);
-const customerService = ref(['Contact Us','FAQs','Shipping Policy','Return & Exchages','Privacy Policy']);
+const customerService = ref(['Contact Us','FAQs','Shipping Policy','Return & Exchanges','Privacy Policy']);
 const paymentIcons = ref(['logos:visa','logos:mastercard','logos:paypal']);
 const socialLinks = ref([
     {icon:'fa6-brands:facebook',url:'#'},
