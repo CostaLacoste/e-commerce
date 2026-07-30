@@ -36,7 +36,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-medium text-gray-900">Phone</h3>
-                                    <p class="text-gray-800">+1 (234) 567-8900</p>
+                                    <p class="text-gray-800">+90 (234) 567-8900</p>
                                     <p class="text-gray-600">Mon-Fri:9am-6pm</p>
                                 </div>
                             </div>
