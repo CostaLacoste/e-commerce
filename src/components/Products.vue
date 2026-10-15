@@ -20,7 +20,7 @@
                             <figure class="relative">
                                 <img :src="product.image" :alt="product.name" class="w-full h-64 object-cover" />
                                 <figcaption v-if="product.discount > 0" class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">-{{ product.discount }}%</figcaption>
-                                <button class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-md hover:bg-pink-100 text-gray-700" aria-label="Add to wishlist">
+                                <button type="button" class="absolute top-3 left-3 p-2 bg-white rounded-full shadow-md hover:bg-pink-100" :class="isWishlisted(product.id) ? 'text-pink-600' : 'text-gray-700'" :aria-pressed="isWishlisted(product.id)" :aria-label="isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'" @click="toggleWishlist(product)">
                                     <Icon icon="line-md:heart" width="18" height="18"/>
                                 </button>
                             </figure>
@@ -39,7 +39,7 @@
                                             ${{ product.price.toFixed(2) }}
                                         </span>
                                     </div>
-                                    <button class="p-2 bg-pink-950 rounded-full text-white hover:bg-pink-700 transition-colors" aria-label="Add to cart">
+                                    <button type="button" class="p-2 bg-pink-950 rounded-full text-white hover:bg-pink-700 transition-colors" aria-label="Add to cart" @click="addToCart(product)">
                                         <Icon icon="icon-park-solid:shopping" width="18" height="18"/>
                                     </button>
                                 </footer>
@@ -48,6 +48,7 @@
                     </li>
                 </ul>
             </section>
+            <p v-if="shop.query && filteredProducts.length === 0" class="text-center text-gray-600 py-8">No products match your search.</p>
             <nav class="flex justify-center mt-6 space-x-2" aria-label="Carousel pagination">
                 <button v-for="index in totalSlides" :key="index" @click="currentSlide = index - 1" :class="['w-3 h-3 rounded-full', currentSlide === index - 1 ? 'bg-pink-950' : 'bg-gray-400']" />
             </nav>
@@ -55,43 +56,62 @@
     </section>
 </template>
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount} from 'vue'
-import product1 from '../assets/1.jpg'
-import product2 from '../assets/2.jpg'
-import product3 from '../assets/3.webp'
-import product4 from '../assets/4.webp'
-import product5 from '../assets/5.jpg'
-import product6 from '../assets/6.jpg'
-import product7 from '../assets/7.jpg'
-import product8 from '../assets/8.png'
-
+import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue'
+import {addToCart as saveCartItem, addToWishlist, fetchProducts, removeFromWishlist} from '../api'
+import {defaultProducts} from '../data/catalog'
+import {isWishlisted, shop} from '../state'
 
 const currentSlide = ref(0);
 const productsPerPage = ref(4);
+const products = ref(defaultProducts);
 
-const products = [
-    {id: 1, name: 'Floral', price: 99.99, rating: 4.5, image: product1, discount: 20},
-    {id: 2, name: 'Woody', price: 199.99, rating: 4.1, image: product2, discount: 13},
-    {id: 3, name: 'Oriental', price: 87.99, rating: 4.6, image: product3, discount: 5},
-    {id: 4, name: 'Floral', price: 99.99, rating: 4.2, image: product4, discount: 2},
-    {id: 5, name: 'Floral', price: 93.99, rating: 3.7, image: product5, discount: 1},
-    {id: 6, name: 'Floral', price: 299.99, rating: 5.0, image: product6, discount: 6},
-    {id: 7, name: 'Floral', price: 49.99, rating: 4.0, image: product7, discount: 12},
-    {id: 8, name: 'Floral', price: 69.99, rating: 2.6, image: product8, discount: 16},
-]
+const filteredProducts = computed(() => {
+    const query = shop.query.trim().toLowerCase();
+    if (!query) return products.value;
+    return products.value.filter((product) => {
+        const description = product.description?.toLowerCase() ?? '';
+        return product.name.toLowerCase().includes(query) || description.includes(query);
+    });
+});
 
-const totalSlides = computed(() => Math.ceil(products.length/productsPerPage.value));
+const totalSlides = computed(() => Math.ceil(filteredProducts.value.length / productsPerPage.value));
 const visibleProducts = computed(() => {
     const start = currentSlide.value * productsPerPage.value;
-    return products.slice(start, start + productsPerPage.value);
+    return filteredProducts.value.slice(start, start + productsPerPage.value);
+})
+
+watch(() => shop.query, () => {
+    currentSlide.value = 0;
 })
 
 const nextSlide = () => {
+    if (totalSlides.value < 1) return;
     currentSlide.value = currentSlide.value === totalSlides.value -1 ? 0 : currentSlide.value + 1;
 }
 
 const previousSlide = () => {
+    if (totalSlides.value < 1) return;
     currentSlide.value = currentSlide.value === 0 ? totalSlides.value - 1 : currentSlide.value - 1;
+}
+
+const addToCart = async (product) => {
+    try {
+        await saveCartItem(product.id);
+    } catch {
+        // The badge stays unchanged when the API is unreachable.
+    }
+}
+
+const toggleWishlist = async (product) => {
+    try {
+        if (isWishlisted(product.id)) {
+            await removeFromWishlist(product.id);
+        } else {
+            await addToWishlist(product.id);
+        }
+    } catch {
+        // The heart stays unchanged when the API is unreachable.
+    }
 }
 
 const handleResize = () => {
@@ -106,9 +126,15 @@ const handleResize = () => {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     handleResize();
     window.addEventListener('resize', handleResize);
+    try {
+        const remote = await fetchProducts();
+        if (remote?.length) products.value = remote;
+    } catch {
+        // Keep the bundled catalog when the API is offline.
+    }
 })
 
 onBeforeUnmount(() => {

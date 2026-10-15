@@ -20,47 +20,39 @@
                         <p class="text-sm text-gray-500 mb-1">Use code</p>
                         <p class="font-bold font-mono text-lg">{{ offer.code }}</p>
                     </div>
-                    <button :class="[offer.textColor, 'w-full py-3 rounded-lg font-semibold border', offer.textColor.replace('text','border'),'hover:bg-white transition-colors duration-300']">
+                    <button type="button" @click="claim(offer)" :class="[offer.textColor, 'w-full py-3 rounded-lg font-semibold border', offer.textColor.replace('text','border'),'hover:bg-white transition-colors duration-300']">
                         Claim offer
                     </button>
+                    <p v-if="claimNotes[offer.id]" class="mt-3 text-sm text-gray-800">{{ claimNotes[offer.id] }}</p>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <script setup>
-import {ref} from 'vue'
+import {onMounted, ref} from 'vue'
+import {claimOffer, fetchOffers} from '../api'
+import {defaultOffers} from '../data/catalog'
 
-const currentOffers = ref([
-    {
-        id: 1,
-        title: 'Hot Summer Sale',
-        description: 'Up to 30% off on our summer perfume collection',
-        discount: '30%',
-        endDate: '2026-08-31',
-        code: 'SUMMER30',
-        bgColor: 'bg-amber-200',
-        textColor: 'text-amber-700'
-    },
-    {
-        id: 2,
-        title: 'Free perfume offer',
-        description: 'Up to 30% off on our summer perfume collection',
-        discount: 'Gift',
-        endDate: '2026-08-31',
-        code: 'FREEPERFUME',
-        bgColor: 'bg-purple-200',
-        textColor: 'text-purple-700'
-    },
-    {
-        id: 3,
-        title: 'New Launch Discount',
-        description: 'Up to 30% off on our summer perfume collection',
-        discount: '20%',
-        endDate: '2026-08-31',
-        code: 'NEW20',
-        bgColor: 'bg-pink-200',
-        textColor: 'text-pink-700'
+const currentOffers = ref(defaultOffers)
+const claimNotes = ref({})
+
+onMounted(async () => {
+    try {
+        const remote = await fetchOffers()
+        if (remote?.length) currentOffers.value = remote
+    } catch {
+        // Keep the bundled offers when the API is offline.
     }
-])
+})
+
+const claim = async (offer) => {
+    try {
+        const result = await claimOffer(offer.code)
+        const note = result.alreadyClaimed ? `Code ${offer.code} was already applied` : `Code ${offer.code} applied`
+        claimNotes.value = {...claimNotes.value, [offer.id]: note}
+    } catch (error) {
+        claimNotes.value = {...claimNotes.value, [offer.id]: error.message}
+    }
+}
 </script>

@@ -10,20 +10,22 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 <div class="bg-white p-8 rounded-lg shadow-xl border border-gray-100">
                     <h2 class="text-2xl font-serif font-semibold text-gray-900 mb-6">Send Us a Message</h2>
-                    <form class="space-y-6">
+                    <form class="space-y-6" @submit.prevent="submit">
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-800 mb-1">Your Name</label>
-                            <input type="text" id="name" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Your name" />
+                            <input v-model="name" type="text" id="name" autocomplete="name" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Your name" />
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-medium text-gray-800 mb-1">Email Address</label>
-                            <input type="email" id="email" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Your@email.com" />
+                            <input v-model="email" type="email" id="email" autocomplete="email" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Your@email.com" />
                         </div>
                         <div>
                             <label for="message" class="block text-sm font-medium text-gray-800 mb-1">Your Message</label>
-                            <textarea rows="5" id="message" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Tell us about your fragrance needs..."></textarea>
+                            <textarea v-model="message" rows="5" id="message" required class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent" placeholder="Tell us about your fragrance needs..."></textarea>
                         </div>
-                        <button class="w-full bg-pink-700 hover:bg-pink-800 text-white py-3 px-6 rounded-lg transition duration-300 font-medium shadow-md">Send Message</button>
+                        <p v-if="error" class="text-sm text-red-600" role="alert">{{ error }}</p>
+                        <p v-if="success" class="text-sm text-green-700" role="status">{{ success }}</p>
+                        <button type="submit" :disabled="sending" class="w-full bg-pink-700 hover:bg-pink-800 text-white py-3 px-6 rounded-lg transition duration-300 font-medium shadow-md disabled:opacity-60">{{ sending ? 'Sending...' : 'Send Message' }}</button>
                     </form>
                 </div>
                 <div class="space-y-8">
@@ -81,3 +83,31 @@
         </div>
     </div>
 </template>
+<script setup>
+import {ref} from 'vue'
+import {sendMessage} from '../api'
+
+const name = ref('')
+const email = ref('')
+const message = ref('')
+const error = ref('')
+const success = ref('')
+const sending = ref(false)
+
+const submit = async () => {
+    error.value = ''
+    success.value = ''
+    sending.value = true
+    try {
+        await sendMessage({name: name.value, email: email.value, message: message.value})
+        success.value = 'Thanks, your message is on its way.'
+        name.value = ''
+        email.value = ''
+        message.value = ''
+    } catch (err) {
+        error.value = err instanceof Error ? err.message : 'Could not send your message'
+    } finally {
+        sending.value = false
+    }
+}
+</script>

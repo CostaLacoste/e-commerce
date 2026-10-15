@@ -8,14 +8,14 @@
                 </p>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div v-for="(category, index) in categories" :key="index" class="relative group overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                <div v-for="category in categories" :key="category.id" class="relative group overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
                     <div class="h-64 overflow-hidden">
                         <img :src="category.image" :alt="category.alt" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                     </div>
                     <div class="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent">
                         <div class="absolute bottom-0 left-0 p-6">
                             <h3 class="text-xl font-semibold text-white">{{ category.title }}</h3>
-                            <p class="text-gray-200 mt-1">{{ category.decription }}</p>
+                            <p class="text-gray-200 mt-1">{{ category.description }}</p>
                         </div>
                     </div>
                 </div>
@@ -24,18 +24,18 @@
     </section>
 </template>
 <script setup>
-import {ref} from 'vue'
-import product8 from '../assets/8.png'
-import product9 from '../assets/9.jpg'
-import product10 from '../assets/10.jpg'
-import product11 from '../assets/11.webp'
-import product12 from '../assets/12.jpg'
+import {onMounted, ref} from 'vue'
+import {fetchCategories} from '../api'
+import {defaultCategories} from '../data/catalog'
 
-const categories = ref([
-    {image: product8, title: "Men's Collection", decription: "Bold & masculine scents", alt:"Men's Collection"},
-    {image: product9, title: "Women's Collection", decription: "Bold & masculine scents", alt:"Women's Collection"},
-    {image: product10, title: "Men's Collection", decription: "Bold & masculine scents", alt:"Men's Collection"},
-    {image: product11, title: "Women's Collection", decription: "Bold & masculine scents", alt:"Women's Collection"},
-    {image: product12, title: "Men's Collection", decription: "Bold & masculine scents", alt:"Men's Collection"},
-])
+const categories = ref(defaultCategories)
+
+onMounted(async () => {
+    try {
+        const remote = await fetchCategories()
+        if (remote?.length) categories.value = remote
+    } catch {
+        // Keep the bundled categories when the API is offline.
+    }
+})
 </script>

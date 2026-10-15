@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "dev:api": "npm run dev --prefix server",
+    "test:api": "npm test --prefix server",
+    "typecheck:api": "npm run typecheck --prefix server"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
